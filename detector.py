@@ -291,6 +291,15 @@ def decode_qr_adaptive(image_path: str, category: str | None = None) -> list[dic
     return []
 
 
+def decode_qr_frame(frame_bgr: np.ndarray) -> list[dict]:
+    gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
+    with _suppress_c_stderr():
+        results = _decode_objects(pyzbar.decode(gray))
+    if not results:
+        results = _decode_cv2qr(gray)
+    return results
+
+
 def draw_results(image: np.ndarray, results: list[dict]) -> np.ndarray:
     canvas = image.copy()
     for r in results:

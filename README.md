@@ -14,10 +14,10 @@
 ```
 qrcode/
 ├── main.py              # CLI 入口（单图 / 批量模式）
+├── app.py               # Streamlit Web UI（图片/视频/摄像头）
 ├── detector.py          # QR 检测与解码核心逻辑
 ├── preprocessor.py      # 16 类自适应图像预处理管线
 ├── pyproject.toml       # 依赖管理 (uv)
-├── images/              # 测试图片
 └── qrcodes/detection/   # 数据集（16 类子目录）
 ```
 
@@ -30,6 +30,10 @@ qrcode/
 | `opencv-python` | 图像读写、灰度转换、预处理 |
 | `pyzbar` | QR 码检测与解码 |
 | `zbar` (系统库) | pyzbar 底层依赖，macOS 通过 `brew install zbar` 安装 |
+| `streamlit` | Web UI 框架 |
+| `plotly` | 数据可视化图表 |
+| `streamlit-webrtc` | 浏览器摄像头实时视频流 |
+| `aiortc` | Python WebRTC 后端 |
 
 > macOS 下 `detector.py` 会自动设置 `DYLD_LIBRARY_PATH` 指向 Homebrew 的 zbar 库路径。
 
@@ -43,6 +47,7 @@ qrcode/
 |---|---|
 | `decode_qr(image_path)` | 基础检测：灰度转换 → pyzbar 解码 |
 | `decode_qr_adaptive(image_path, category)` | 自适应检测：根据 category 调用预处理管线，依次尝试多个候选图像，返回首个成功结果；始终回退到原始灰度图 |
+| `decode_qr_frame(frame_bgr)` | 帧检测：直接接收 BGR numpy 数组，跳过文件 I/O，用于摄像头/视频实时场景 |
 | `draw_results(image, results)` | 在图像上绘制绿色边界框和红色解码文本 |
 
 返回结构：
@@ -82,6 +87,21 @@ uv run main.py --image <path> [-c category] [-o output] [--no-display]
 uv run main.py --batch <dataset_dir> [-c category] [--output-dir dir]
 ```
 
+### 4.4 `app.py` — Streamlit Web UI
+
+四种模式的交互式 Web 界面：
+
+```bash
+uv run streamlit run app.py
+```
+
+| 模式 | 功能 |
+|---|---|
+| **单张图片** | 上传图片 → 检测 → 标注图 + 解码详情 |
+| **批量上传** | 多图上传 → 批量检测 → KPI 看板 + 图表 + 详情表 |
+| **视频检测** | 上传视频 → 自动抽帧检测 → 时间线图 + 关键帧 + 解码记录 |
+| **摄像头实时** | 调用浏览器摄像头 → WebRTC 实时逐帧检测 → 标注回传 |
+
 ---
 
 ## 5. 各类别预处理策略
@@ -111,6 +131,8 @@ uv run main.py --batch <dataset_dir> [-c category] [--output-dir dir]
 
 ## 6. 使用示例
 
+### 6.1 CLI
+
 ```bash
 # 单张图片检测
 uv run main.py --image photo.jpg --no-display
@@ -127,6 +149,14 @@ uv run main.py --batch qrcodes/detection/ -c monitor
 # 批量检测并保存标注结果
 uv run main.py --batch qrcodes/detection/ --output-dir results/
 ```
+
+### 6.2 Web UI
+
+```bash
+uv run streamlit run app.py
+```
+
+浏览器打开后可选择四种模式：单张图片 / 批量上传 / 视频检测 / 摄像头实时。
 
 ---
 
