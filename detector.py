@@ -63,12 +63,7 @@ def _decode_objects(decoded_objects) -> list[dict]:
 
 
 def _decode_cv2qr(gray: np.ndarray) -> list[dict]:
-    old_level = cv2.getLogLevel()
-    cv2.setLogLevel(0)
-    try:
-        data, points, _ = _cv2_qr.detectAndDecode(gray)
-    finally:
-        cv2.setLogLevel(old_level)
+    data, points, _ = _cv2_qr.detectAndDecode(gray)
     if not data or points is None or len(points) == 0:
         return []
     pts = points[0] if points.ndim == 3 else points
@@ -88,12 +83,7 @@ def _decode_cv2qr(gray: np.ndarray) -> list[dict]:
 
 
 def _decode_cv2qr_multi(gray: np.ndarray) -> list[dict]:
-    old_level = cv2.getLogLevel()
-    cv2.setLogLevel(0)
-    try:
-        ok, decoded_info, points_multi, _ = _cv2_qr.detectAndDecodeMulti(gray)
-    finally:
-        cv2.setLogLevel(old_level)
+    ok, decoded_info, points_multi, _ = _cv2_qr.detectAndDecodeMulti(gray)
     if not ok or not decoded_info:
         return []
     for i, info in enumerate(decoded_info):
